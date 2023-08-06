@@ -162,7 +162,20 @@ function networkUp() {
   fi
 }
 
+# call the script to create the channel, join the peers of org1 and org2,
+# and then update the anchor peers for each organization
+function createChannel() {
+  # Bring up the network if it is not already up.
 
+  if [ ! -d "organizations/peerOrganizations" ]; then
+    infoln "Bringing up network"
+    networkUp
+  fi
+
+  # now run the script that creates a channel. This script uses configtxgen once
+  # to create the channel creation transaction and the anchor peer updates.
+  scripts/createChannel.sh $CHANNEL_NAME $CLI_DELAY $MAX_RETRY $VERBOSE
+}
 # Tear down running network
 function networkDown() {
   # stop org3 containers also in addition to org1 and org2, in case we were running sample to add org3
@@ -344,6 +357,9 @@ fi
 # Determine mode of operation and printing out what we asked for
 if [ "$MODE" == "up" ]; then
   infoln "Starting nodes with CLI timeout of '${MAX_RETRY}' tries and CLI delay of '${CLI_DELAY}' seconds and using database '${DATABASE}' ${CRYPTO_MODE}"
+elif [ "$MODE" == "createChannel" ]; then
+  infoln "Creating channel '${CHANNEL_NAME}'."
+  infoln "If network is not up, starting nodes with CLI timeout of '${MAX_RETRY}' tries and CLI delay of '${CLI_DELAY}' seconds and using database '${DATABASE} ${CRYPTO_MODE}"  
 elif [ "$MODE" == "down" ]; then
   infoln "Stopping network"
 else
@@ -353,6 +369,8 @@ fi
 
 if [ "${MODE}" == "up" ]; then
   networkUp
+elif [ "${MODE}" == "createChannel" ]; then
+  createChannel
 elif [ "${MODE}" == "down" ]; then
   networkDown
 else
